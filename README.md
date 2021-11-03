@@ -241,8 +241,6 @@ services:
 $ docker-compose up		
 
 Edit the Compose file to add a bind mount
-
-
 version: "3.9"
 services:
   web:
@@ -273,11 +271,11 @@ $ docker-compose up
     
   Save the following contents to a file that's named (sample-service.yaml)
   
-    apiVersion: v1
+ apiVersion: v1
 kind: Service
 metadata:
-  name: my-service
-  namespace: my-namespace
+name: my-service
+    namespace: my-namespace
   labels:
     app: my-app
 spec:
