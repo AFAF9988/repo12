@@ -173,7 +173,7 @@ Use the AWS SSO API through AWS CloudFormation
 
 
   
- Demonstrate ability to deploy app locally using Docker compose.
+# Demonstrate ability to deploy app locally using Docker compose.
 
 
 
@@ -213,8 +213,7 @@ redis
   
   
 Create a Dockerfile
-# syntax=docker/dockerfile:1
-FROM python:3.7-alpine
+     FROM python:3.7-alpine
 WORKDIR /code
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
@@ -260,16 +259,95 @@ services:
 Re-build and run the app with Compose
 
 $ docker-compose up
+    
+     Deploy the same app to EKS
 
+#Create a Kubernetes namespace for the sample app.
+    
+    
+    kubectl create namespace <my-namespace>
+    
+    
+    
+    Create a Kubernetes service and deployment.
+    
+  Save the following contents to a file that's named (sample-service.yaml)
+  
+    apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+  namespace: my-namespace
+  labels:
+    app: my-app
+spec:
+  selector:
+    app: my-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  namespace: my-namespace
+  labels:
+    app: my-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - name: nginx
+        image: public.ecr.aws/z9d2n7e1/nginx:1.19.5
+        ports:
+        - containerPort: 80
 
+    
+    
+    
+    
+    Deploy the application.
+    
+kubectl apply -f <sample-service.yaml>
 
+    View all resources that exist in the my-namespace namespace.
+    
+    kubectl get all -n my-namespace
 
+    View the details of the deployed service.
+    
+kubectl -n <my-namespace> describe service <my-service>
+    
+    View the details of one of the pods that was deployed.
 
+    kubectl -n <my-namespace> describe pod <my-deployment-776d8f8fd8-78w66>
 
+    Run a shell on one of the pods by replacing the <value> below with a value returned for one of your pods in step 3.
 
-
-
-
+    kubectl exec -it <my-deployment-776d8f8fd8-78w66> -n <my-namespace> -- /bin/bash
+    
+    View the DNS resolver configuration file.
+    
+    cat /etc/resolv.conf
 
 
 
